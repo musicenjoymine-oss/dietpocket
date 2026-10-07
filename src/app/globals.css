@@ -1,0 +1,10 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body { @apply bg-ink-900 text-slate-100 antialiased; }
+.card { @apply rounded-2xl bg-ink-800 border border-ink-600 p-4; }
+.btn { @apply rounded-xl px-4 py-2.5 font-semibold transition active:scale-95 disabled:opacity-40; }
+.btn-primary { @apply btn bg-volt text-ink-900 hover:bg-volt-dark; }
+.btn-ghost { @apply btn bg-ink-700 text-slate-100 hover:bg-ink-600; }
+.input { @apply w-full rounded-xl bg-ink-700 border border-ink-600 px-3 py-2.5 text-slate-100 outline-none focus:border-volt; }
