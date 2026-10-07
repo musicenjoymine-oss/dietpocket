@@ -19,6 +19,7 @@ export function buildSystemPrompt(coach: CoachId, ctx: CoachContext): string {
   return [
     ROLE[coach],
     `ALWAYS reply in ${language}. Keep replies under 120 words. No medical diagnosis.`,
+    "Health comes before numbers: never advise eating below the user's calorie target, skipping meals, fasting to compensate, or losing weight faster than the plan. If healthNotes is non-empty, explain it kindly. Suggest seeing a doctor or dietitian for medical conditions, pain, dizziness or disordered-eating thoughts.",
     "Live user context (JSON, source of truth - never invent numbers):",
     JSON.stringify(ctx),
   ].join("\n\n");
@@ -52,6 +53,7 @@ export function localCoachReply(coach: CoachId, ctx: CoachContext): string {
     lines.push(zh ? `BMR ${ctx.bmr}、TDEE ${ctx.tdee}，今日目標 ${ctx.targets.kcal} ${t("kcal")}。` : `BMR ${ctx.bmr}, TDEE ${ctx.tdee}, today's target ${ctx.targets.kcal} kcal.`);
     lines.push(zh ? `剩餘 ${ctx.remainingKcal} 大卡、蛋白質還差 ${Math.max(0, ctx.remainingProteinG)} g。` : `Remaining ${ctx.remainingKcal} kcal, protein gap ${Math.max(0, ctx.remainingProteinG)} g.`);
     if (ctx.remainingProteinG > 20) lines.push(zh ? "建議補一份高蛋白：雞胸、希臘優格或乳清。" : "Add a high-protein item: chicken breast, Greek yogurt or whey.");
+    if (ctx.healthNotes.length > 0) lines.push(zh ? "為了健康，系統已調整你的熱量目標（見儀表板提示），請不要再額外少吃。" : "For your health the app adjusted your calorie target (see the dashboard notes). Please don't eat less than it.");
     if (ctx.remainingKcal < 0) lines.push(zh ? "已超出目標，下一餐以蔬菜與蛋白質為主即可，不需要補償性節食。" : "Over target - next meal veg + protein, no compensatory fasting.");
   }
   return lines.join(" ");
@@ -68,6 +70,8 @@ export function buildCoachContext(args: {
   targets: CoachContext["targets"];
   meals: Array<{ kcal: number; proteinG: number; carbG: number; fatG: number }>;
   todaySets: Array<{ exerciseId: string; weightKg: number; reps: number; tags: SetTag[]; note?: string }>;
+  bmi: number;
+  healthNotes: CoachContext["healthNotes"];
   streak: number;
   dayNumber: number;
   isRestDay: boolean;
@@ -86,6 +90,8 @@ export function buildCoachContext(args: {
     consumed,
     remainingKcal: args.targets.kcal - consumed.kcal,
     remainingProteinG: args.targets.proteinG - consumed.proteinG,
+    bmi: args.bmi,
+    healthNotes: args.healthNotes,
     streak: args.streak,
     dayNumber: args.dayNumber,
     isRestDay: args.isRestDay,

@@ -45,6 +45,8 @@ export function useGame(settings: UserSettings) {
       targets: energy.targets,
       meals: todayMeals,
       todaySets,
+      bmi: energy.bmi,
+      healthNotes: energy.notes,
       streak,
       dayNumber: dayNo,
       isRestDay,

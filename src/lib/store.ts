@@ -42,8 +42,14 @@ export const useAppStore = create<AppState>()(
           const today = todayISO();
           // A changed profile weight counts as today's weigh-in so targets recompute.
           const weightChanged = !st.settings || st.settings.weightKg !== s.weightKg;
+          const existing = st.weights.find((w) => w.date === today);
+          // Keep a real check-in as a check-in; only mark brand-new entries as profile-sourced.
+          const entry: WeightLog =
+            existing && existing.source !== "profile"
+              ? { date: today, weightKg: s.weightKg }
+              : { date: today, weightKg: s.weightKg, source: "profile" };
           const weights = weightChanged
-            ? [...st.weights.filter((w) => w.date !== today), { date: today, weightKg: s.weightKg }]
+            ? [...st.weights.filter((w) => w.date !== today), entry]
             : st.weights;
           return { settings: s, weights };
         }),
