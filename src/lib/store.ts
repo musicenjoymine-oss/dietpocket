@@ -3,6 +3,7 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { todayISO } from "./dates";
+import type { SyncData } from "./merge";
 import type { DayRecord, MealLog, SetTag, UserSettings, WeightLog, WorkoutSet } from "./types";
 
 interface AppState {
@@ -11,7 +12,14 @@ interface AppState {
   meals: MealLog[];
   weights: WeightLog[];
   days: Record<string, DayRecord>;
+  /** Account whose data this device holds (null = anonymous local data). */
+  ownerId: string | null;
+  /** True while local changes may not have reached the server yet. */
+  dirty: boolean;
 
+  /** Replace synced data wholesale (used by cloud sync). */
+  applyData: (d: SyncData, ownerId: string | null) => void;
+  setDirty: (dirty: boolean) => void;
   saveSettings: (s: UserSettings) => void;
   setLang: (lang: UserSettings["lang"]) => void;
   logSet: (input: Omit<WorkoutSet, "id" | "createdAt">) => void;
@@ -36,7 +44,11 @@ export const useAppStore = create<AppState>()(
       meals: [],
       weights: [],
       days: {},
+      ownerId: null,
+      dirty: false,
 
+      applyData: (d, ownerId) => set({ ...d, ownerId }),
+      setDirty: (dirty) => set({ dirty }),
       saveSettings: (s) =>
         set((st) => {
           const today = todayISO();
