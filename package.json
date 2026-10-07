@@ -10,6 +10,7 @@
     "test": "tsx --test src/lib/*.test.ts"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.117.3",
     "framer-motion": "^11.11.17",
     "lucide-react": "^0.462.0",
     "next": "^14.2.18",

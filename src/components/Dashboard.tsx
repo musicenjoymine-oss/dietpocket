@@ -6,6 +6,7 @@ import { translate } from "@/lib/i18n";
 import { useAppStore } from "@/lib/store";
 import { useGame } from "@/lib/useGame";
 import type { UserSettings } from "@/lib/types";
+import { AuthPanel } from "./AuthPanel";
 import { CoachPanel } from "./CoachPanel";
 import { DailyQuestModal } from "./DailyQuestModal";
 import { EnergyCard } from "./EnergyCard";
@@ -39,6 +40,7 @@ export function Dashboard({ settings, onEditProfile }: { settings: UserSettings;
       )}
       <TrendChart lang={settings.lang} points={g.trend} status={g.status} deltaKg={g.deltaKg} today={g.today} />
       <CoachPanel lang={settings.lang} context={g.coachContext} />
+      <AuthPanel lang={settings.lang} />
       {open && <DailyQuestModal settings={settings} game={g} onClose={() => setOpen(false)} />}
     </main>
   );

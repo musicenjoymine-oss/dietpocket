@@ -5,6 +5,7 @@ import { todayISO } from "@/lib/dates";
 import { activityLabel, translate, type DictKey } from "@/lib/i18n";
 import { ACTIVITY_FACTORS, calcBMI, calcEnergyProfile, maxDeficit, UNDERWEIGHT_BMI, weightAtBMI } from "@/lib/nutrition";
 import { useAppStore } from "@/lib/store";
+import { AuthPanel } from "./AuthPanel";
 import type { ActivityLevel, Lang, UserSettings } from "@/lib/types";
 
 const BLANK: UserSettings = {
@@ -38,6 +39,7 @@ export function ProfileForm({ initial, onDone }: { initial?: UserSettings; onDon
             </button>
           ))}
         </div>
+        {!initial && <AuthPanel lang={f.lang} compact />}
         <div className="card grid grid-cols-2 gap-3">
           <label className="text-sm">{t("age")}<input className="input" type="number" value={f.age} onChange={num("age")} /></label>
           <label className="text-sm">{t("sex")}
