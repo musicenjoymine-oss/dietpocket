@@ -46,6 +46,8 @@ export interface MealLog {
 export interface WeightLog {
   date: string;
   weightKg: number;
+  /** "profile" = entered while editing the profile; it must not count as the daily check-in quest. */
+  source?: "profile";
 }
 
 /** Per-day state that is not a list of sets/meals. */
@@ -69,10 +71,17 @@ export interface MacroTargets {
   fatG: number;
 }
 
+/** Why the engine adjusted what the user asked for. Always shown to the user. */
+export type HealthNote = "underweight" | "deficit_capped" | "floor_applied" | "goal_too_low" | "at_goal";
+
 export interface EnergyProfile {
   bmr: number;
   tdee: number;
+  bmi: number;
   deficitKcal: number;
+  /** Expected loss per week implied by the deficit (kg). */
+  weeklyLossKg: number;
+  notes: HealthNote[];
   targets: MacroTargets;
   /** Weight actually used (smoothed) so targets don't jump daily. */
   basisWeightKg: number;
@@ -93,6 +102,8 @@ export interface CoachContext {
   consumed: MacroTargets;
   remainingKcal: number;
   remainingProteinG: number;
+  bmi: number;
+  healthNotes: HealthNote[];
   streak: number;
   dayNumber: number;
   isRestDay: boolean;

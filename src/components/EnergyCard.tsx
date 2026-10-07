@@ -28,6 +28,14 @@ export function EnergyCard({ lang, energy, consumed }: { lang: Lang; energy: Ene
       <Bar label={t("protein")} value={consumed.proteinG} target={tg.proteinG} unit="g" />
       <Bar label={t("carbs")} value={consumed.carbG} target={tg.carbG} unit="g" />
       <Bar label={t("fat")} value={consumed.fatG} target={tg.fatG} unit="g" />
+      <p className="text-[11px] text-slate-400">
+        {t("bmi")} {energy.bmi} · {t("weeklyLoss")} {energy.weeklyLossKg} {t("perWeek")}
+      </p>
+      {energy.notes.map((n) => (
+        <p key={n} className="rounded-lg bg-amber-400/10 px-3 py-2 text-xs text-amber-200">
+          🩺 {t(`note_${n}` as DictKey)}
+        </p>
+      ))}
       <p className="text-[11px] text-slate-500">{t("basis")}: {energy.basisWeightKg} kg</p>
     </section>
   );

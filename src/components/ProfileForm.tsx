@@ -2,14 +2,14 @@
 
 import { useState } from "react";
 import { todayISO } from "@/lib/dates";
-import { activityLabel, translate } from "@/lib/i18n";
-import { calcEnergyProfile, ACTIVITY_FACTORS } from "@/lib/nutrition";
+import { activityLabel, translate, type DictKey } from "@/lib/i18n";
+import { ACTIVITY_FACTORS, calcBMI, calcEnergyProfile, maxDeficit, UNDERWEIGHT_BMI, weightAtBMI } from "@/lib/nutrition";
 import { useAppStore } from "@/lib/store";
 import type { ActivityLevel, Lang, UserSettings } from "@/lib/types";
 
 const BLANK: UserSettings = {
   lang: "zh-TW", age: 30, sex: "male", heightCm: 172, weightKg: 75, goalWeightKg: 68,
-  activity: "moderate", deficitPct: 0.2, programStart: todayISO(),
+  activity: "light", deficitPct: 0.15, programStart: todayISO(),
 };
 
 export function ProfileForm({ initial, onDone }: { initial?: UserSettings; onDone: () => void }) {
@@ -18,9 +18,13 @@ export function ProfileForm({ initial, onDone }: { initial?: UserSettings; onDon
   const t = (k: Parameters<typeof translate>[1]) => translate(f.lang, k);
   const num = (k: keyof UserSettings) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setF({ ...f, [k]: Number(e.target.value) });
-  const valid = f.age >= 14 && f.age <= 90 && f.heightCm >= 120 && f.heightCm <= 230 &&
-    f.weightKg >= 35 && f.weightKg <= 250 && f.goalWeightKg >= 35 && f.deficitPct >= 0.05 && f.deficitPct <= 0.35;
-  const preview = valid ? calcEnergyProfile(f, f.weightKg) : null;
+  const inRange = f.age >= 18 && f.age <= 80 && f.heightCm >= 120 && f.heightCm <= 230 &&
+    f.weightKg >= 35 && f.weightKg <= 250 && f.goalWeightKg >= 35 && f.deficitPct >= 0.05;
+  const preview = inRange ? calcEnergyProfile(f, f.weightKg) : null;
+  // Block goals in the underweight range; everything else is adjusted by the engine and explained.
+  const goalTooLow = inRange && f.goalWeightKg < weightAtBMI(UNDERWEIGHT_BMI, f.heightCm);
+  const valid = inRange && !goalTooLow;
+  const maxPct = inRange ? Math.max(5, Math.floor(maxDeficit(calcBMI(f.weightKg, f.heightCm)).pct * 100)) : 25;
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-ink-900/95">
@@ -51,9 +55,10 @@ export function ProfileForm({ initial, onDone }: { initial?: UserSettings; onDon
               ))}
             </select>
           </label>
-          <label className="col-span-2 text-sm">{t("deficit")}: {Math.round(f.deficitPct * 100)}%
-            <input className="w-full accent-lime-300" type="range" min={5} max={35} step={1}
-              value={Math.round(f.deficitPct * 100)} onChange={(e) => setF({ ...f, deficitPct: Number(e.target.value) / 100 })} />
+          <label className="col-span-2 text-sm">{t("deficit")}: {Math.min(Math.round(f.deficitPct * 100), maxPct)}%
+            <span className="ml-1 text-xs text-slate-400">({t("safeMaxDeficit")}: {maxPct}%)</span>
+            <input className="w-full accent-lime-300" type="range" min={5} max={maxPct} step={1}
+              value={Math.min(Math.round(f.deficitPct * 100), maxPct)} onChange={(e) => setF({ ...f, deficitPct: Number(e.target.value) / 100 })} />
           </label>
         </div>
         {preview && (
@@ -66,6 +71,15 @@ export function ProfileForm({ initial, onDone }: { initial?: UserSettings; onDon
             <div><div className="text-slate-400">{t("fat")}</div><b>{preview.targets.fatG}g</b></div>
           </div>
         )}
+        {preview && (
+          <div className="space-y-2">
+            <p className="text-xs text-slate-400">{t("bmi")} {preview.bmi} · {t("weeklyLoss")} {preview.weeklyLossKg} {t("perWeek")}</p>
+            {preview.notes.map((n) => (
+              <p key={n} className="rounded-lg bg-amber-400/10 px-3 py-2 text-xs text-amber-200">🩺 {t(`note_${n}` as DictKey)}</p>
+            ))}
+          </div>
+        )}
+        <p className="text-[11px] text-slate-500">{t("ageNote")} {t("profileDisclaimer")}</p>
         <div className="flex gap-2">
           {initial && <button className="btn-ghost flex-1" onClick={onDone}>{t("close")}</button>}
           <button className="btn-primary flex-1" disabled={!valid}

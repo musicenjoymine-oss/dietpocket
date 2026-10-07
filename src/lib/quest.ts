@@ -30,7 +30,7 @@ export function tasksDoneOn(date: string, d: DayData) {
   return {
     workout: d.sets.some((s) => s.date === date),
     meal: d.meals.some((m) => m.date === date),
-    checkin: d.weights.some((w) => w.date === date) || (rec?.waterMl ?? 0) > 0,
+    checkin: d.weights.some((w) => w.date === date && w.source !== "profile") || (rec?.waterMl ?? 0) > 0,
   };
 }
 
@@ -106,8 +106,9 @@ export function suggestNext(exercise: Exercise, sets: WorkoutSet[]): NextSuggest
   return { weightKg: last.weightKg, reps: last.reps, reason: null };
 }
 
+/** ~30 ml/kg, kept within a sensible range (more is not better for very heavy users). */
 export function waterGoalMl(weightKg: number): number {
-  return Math.round((weightKg * 35) / 50) * 50;
+  return Math.min(3500, Math.max(1500, Math.round((weightKg * 30) / 50) * 50));
 }
 
 export interface Stats {
